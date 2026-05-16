@@ -8,3 +8,29 @@ export interface Transaction {
     category: string
     date : Date;
 }
+
+export interface CreateTransactionInput{
+    description: string,
+    amount: number,
+    type : TransactionType,
+    category: string
+}
+
+
+export interface UpdateTransactionInput{
+    description?: string,
+    amount?: number,
+    type ?: TransactionType,
+    category?: string
+}
+
+export interface Transactionfilters{
+    category?: string;
+    type?: TransactionType;
+    from?: Date;
+    to?: Date;
+}
+
+// Real APIs use DTOs (data transfer objects). 
+// The CLI will build these objects and pass them to the service.
+
