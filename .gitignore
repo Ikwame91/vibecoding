@@ -1,0 +1,14 @@
+node_modules/
+/.vscode
+utils/transactions.json
+--what else can i add in gitignore
+.DS_Store
+dist/
+build
+coverage
+.env
+logs
+*.log
+*.tmp
+*.bak
+.idea
