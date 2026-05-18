@@ -1,11 +1,12 @@
 import type {
   CreateTransactionInput,
   Transaction,
+  TransactionFilters,
   UpdateTransactionInput,
 } from "../models/transaction.js";
 import { randomUUID } from "node:crypto";
 import { loadTransactions, saveTransactions } from "../utils/storage.js";
-import { validateCreateInput } from "./validation.js";
+import { validateCreateInput, validateInput } from "./validation.js";
 import { AppError } from "./errors.js";
 
 export class ExpenseTracker {
@@ -17,12 +18,12 @@ export class ExpenseTracker {
   constructor() {
     this.transactions = loadTransactions();
   }
-  addTransaction(input: CreateTransactionInput):Transaction {
+  addTransaction(input: CreateTransactionInput): Transaction {
     validateCreateInput(input);
     const transaction: Transaction = {
       id: randomUUID(),
       description: input.description.trim(),
-      amount:input.amount,
+      amount: input.amount,
       type: input.type,
       category: input.category.trim(),
       date: new Date(),
@@ -32,25 +33,51 @@ export class ExpenseTracker {
     return transaction;
   }
 
-
-  getTransactionById(id:string){
-    //find by id ; if missing throw Apperror
-    const index = this.transactions.find()
-            
-
+  getTransactionById(id: string): Transaction {
+    const transaction = this.transactions.find((t) => t.id === id);
+    if (!transaction) {
+      throw new AppError("Transaction not found");
+    }
+    return transaction;
   }
 
-  dleteTransaction(id:string){
+  deleteTransaction(id: string) {
     //fidn index if -1 throw;splcie;persist(); return true
- const index = this.transactions.findIndex((t)=> t.id=== id);
- if(index===-1) throw new AppError("Transaction not found ")
-    
+    const index = this.transactions.findIndex((t) => t.id === id);
+    if (index === -1) throw new AppError("Transaction not found ");
 
+    this.transactions.splice(index, 1);
+    this.persist();
+    return true;
   }
 
-  updateTransaction(id: string ,input:UpdateTransactionInput){
-    //validateupdateinput; find; mergefiedls with ..existing
-      
+  updateTransaction(id: string, input: UpdateTransactionInput): Transaction {
+    validateInput(input);
+
+    // Find index of the transaction
+    const index = this.transactions.findIndex((t) => t.id === id);
+    if (index === -1) throw new AppError("Transaction not found");
+
+    // Update existing transaction by merging input
+    const existing = this.transactions[index]!;
+    const updated: Transaction = { ...existing };
+
+    if (input.description !== undefined) {
+      updated.description = input.description.trim();
+    }
+    if (input.amount !== undefined) {
+      updated.amount = input.amount;
+    }
+    if (input.type !== undefined) {
+      updated.type = input.type;
+    }
+    if (input.category !== undefined) {
+      updated.category = input.category.trim();
+    }
+
+    this.transactions[index] = updated;
+    this.persist();
+    return updated;
   }
 
   getTotalIncome() {
@@ -73,12 +100,7 @@ export class ExpenseTracker {
   }
 
   getBalance() {
-    return this.transactions.reduce((balance, t) => {
-      if (t.type === "income") {
-        return balance + t.amount;
-      }
-      return balance - t.amount;
-    }, 0);
+    return this.getTotalIncome() - this.getTotalexpenses();
   }
 
   getReportByCategory() {
@@ -93,11 +115,26 @@ export class ExpenseTracker {
     );
   }
 
-  listTransactions() {
-    return [...this.transactions];
+  listTransactions(filters?: TransactionFilters): Transaction[] {
+    let result = [...this.transactions];
+
+    if (filters?.category) {
+      result = result.filter((t) => t.category === filters.category);
+    }
+
+    if (filters?.type) {
+      result = result.filter((t) => t.type === filters.type);
+    }
+    if (filters?.from) {
+      result = result.filter((t) => t.date >= filters.from!);
+    }
+    if (filters?.to) {
+      result = result.filter((t) => t.date <= filters.to!);
+    }
+    return result;
   }
 
-  transactionCountPerCategory() {
+  getTransactionCountPerCategory() {
     return this.transactions.reduce(
       (count, c) => {
         count[c.category] = (count[c.category] || 0) + 1;
@@ -106,7 +143,4 @@ export class ExpenseTracker {
       {} as Record<string, number>,
     );
   }
-
-
-  
 }

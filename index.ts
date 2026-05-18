@@ -14,7 +14,14 @@ function menu() {
   console.log("2. View all transactions");
   console.log("3. View balance");
   console.log("4. View report by category");
-  console.log("5. Exit");
+  console.log("5. Total income");
+  console.log("6. Total expenses");
+  console.log("7. count per category");
+  console.log("8. Get by id");
+  console.log("9. Update by Id");
+  console.log("10. Delete by Id");
+  console.log("11. Filter transactions");
+  console.log("12. Exit");
 
   rl.question("Choose an option: ", (choice) => {
     switch (choice.trim()) {
@@ -35,12 +42,7 @@ function menu() {
                 return;
               }
               rl.question("Category: ", (cat) => {
-                tracker.addTransaction(
-                  desc.trim(),
-                  amount,
-                  trimmedType,
-                  cat.trim(),
-                );
+                tracker.addTransaction( { description: desc.trim(), amount, type: trimmedType, category: cat.trim() } );
                 console.log("Transaction added successfully");
                 menu();
               });

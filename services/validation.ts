@@ -52,4 +52,5 @@ export function validateInput(input: UpdateTransactionInput){
     if(input.category !== undefined){
         assertNonEmpty(input.category, "Category");
     }
+    throw new AppError("At least one field must be provided to update")
 }

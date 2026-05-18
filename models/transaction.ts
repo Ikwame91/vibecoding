@@ -24,7 +24,7 @@ export interface UpdateTransactionInput{
     category?: string
 }
 
-export interface Transactionfilters{
+export interface TransactionFilters{
     category?: string;
     type?: TransactionType;
     from?: Date;
