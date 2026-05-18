@@ -1,3 +1,5 @@
+import { Transaction, TransactionFilters } from "./models/transaction.js";
+import { AppError } from "./services/errors.js";
 import { ExpenseTracker } from "./services/expenseTracker.js";
 import readline from "readline";
 
@@ -42,7 +44,12 @@ function menu() {
                 return;
               }
               rl.question("Category: ", (cat) => {
-                tracker.addTransaction( { description: desc.trim(), amount, type: trimmedType, category: cat.trim() } );
+                tracker.addTransaction({
+                  description: desc.trim(),
+                  amount,
+                  type: trimmedType,
+                  category: cat.trim(),
+                });
                 console.log("Transaction added successfully");
                 menu();
               });
@@ -74,12 +81,111 @@ function menu() {
         break;
 
       case "5":
+        console.log(`Total income: ${tracker.getTotalIncome()}`);
+        menu();
+        break;
+
+      case "6":
+        console.log(`Total expenses: ${tracker.getTotalexpenses()}`);
+        menu();
+        break;
+
+      case "7":
+        console.log("Count per category:");
+        console.log(
+          JSON.stringify(tracker.getTransactionCountPerCategory(), null, 2),
+        );
+        menu();
+
+      case "8":
+        rl.question("Enter transaction ID: ", (id) => {
+          try {
+            const transaction = tracker.getTransactionById(id.trim());
+            if (transaction) {
+              console.log(JSON.stringify(transaction, null, 2));
+            } else {
+              console.log("Transaction not found.");
+            }
+          } catch (error) {
+            if (error instanceof AppError) console.log(error.message);
+            else throw error;
+          }
+          menu();
+        });
+        break;
+
+      case "9":
+        rl.question("Enter transaction ID to update:", (id) => {
+          try {
+            const updateId = tracker.updateTransaction(id.trim(), {});
+            console.log(
+              "Updated transaction:",
+              JSON.stringify(updateId, null, 2),
+            );
+          } catch (error) {
+            if (error instanceof AppError) console.log(error.message);
+            else throw error;
+          }
+          menu();
+        });
+        break;
+
+      case "10":
+        rl.question("Enter transaction ID to delete:", (id) => {
+          try {
+            const deleteId = tracker.deleteTransaction(id.trim());
+            console.log("Deleted transaction:", deleteId);
+          } catch (error) {
+            if (error instanceof AppError) console.log(error.message);
+            else throw error;
+          }
+          menu();
+        });
+        break;
+
+      case "11":
+        rl.question(
+          "Filter by type (income/expense) or category (leave blank for no filter): ",
+          (input) => {
+            try {
+              const value = input.trim().toLocaleLowerCase();
+              const filters: TransactionFilters = {};
+
+              if (value) {
+                const transactionType =
+                  value === "income" || value === "expense";
+
+                if (transactionType) {
+                  filters.type = value;
+                } else {
+                  filters.category = value;
+                }
+                const filteredTransactions = tracker.listTransactions(filters);
+                if (filteredTransactions.length === 0) {
+                  console.log("No transactions match the filter.");
+                } else {
+                  console.log(
+                    "Filtered transactions:",
+                    JSON.stringify(filteredTransactions, null, 2),
+                  );
+                }
+              }
+            } catch (error) {
+              if (error instanceof AppError) console.log(error.message);
+              else throw error;
+            }
+            menu();
+          },
+        );
+        break;
+
+      case "12":
         console.log("Exiting...");
         rl.close();
-        process.exit(0);
+        break;
 
       default:
-        console.log("Invalid option. Choose 1-5.");
+        console.log("Invalid option. Choose 1-12.");
         menu();
         break;
     }
