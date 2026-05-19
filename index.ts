@@ -1,4 +1,8 @@
-import { Transaction, TransactionFilters } from "./models/transaction.js";
+import type {
+  TransactionFilters,
+  TransactionType,
+  UpdateTransactionInput,
+} from "./models/transaction.js";
 import { AppError } from "./services/errors.js";
 import { ExpenseTracker } from "./services/expenseTracker.js";
 import readline from "readline";
@@ -10,6 +14,14 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
+function handleError(error: unknown): void {
+  if (error instanceof AppError) {
+    console.log(error.message);
+  } else {
+    throw error;
+  }
+}
+
 function menu() {
   console.log("\n--- Expense tracker ---");
   console.log("1. Add transaction");
@@ -18,10 +30,10 @@ function menu() {
   console.log("4. View report by category");
   console.log("5. Total income");
   console.log("6. Total expenses");
-  console.log("7. count per category");
+  console.log("7. Count per category");
   console.log("8. Get by id");
-  console.log("9. Update by Id");
-  console.log("10. Delete by Id");
+  console.log("9. Update by id");
+  console.log("10. Delete by id");
   console.log("11. Filter transactions");
   console.log("12. Exit");
 
@@ -31,26 +43,33 @@ function menu() {
         rl.question("Description: ", (desc) => {
           rl.question("Amount: ", (amt) => {
             rl.question("Type (income/expense): ", (type) => {
-              const trimmedType = type.trim();
-              if (trimmedType !== "income" && trimmedType !== "expense") {
-                console.log("Type must be 'income' or 'expense'");
-                menu();
-                return;
-              }
-              const amount = parseFloat(amt);
-              if (Number.isNaN(amount)) {
-                console.log("Amount must be a number");
-                menu();
-                return;
-              }
               rl.question("Category: ", (cat) => {
-                tracker.addTransaction({
-                  description: desc.trim(),
-                  amount,
-                  type: trimmedType,
-                  category: cat.trim(),
-                });
-                console.log("Transaction added successfully");
+                try {
+                  const trimmedType = type.trim();
+                  if (
+                    trimmedType !== "income" &&
+                    trimmedType !== "expense"
+                  ) {
+                    console.log("Type must be 'income' or 'expense'");
+                    menu();
+                    return;
+                  }
+                  const amount = parseFloat(amt);
+                  if (Number.isNaN(amount)) {
+                    console.log("Amount must be a number");
+                    menu();
+                    return;
+                  }
+                  tracker.addTransaction({
+                    description: desc.trim(),
+                    amount,
+                    type: trimmedType,
+                    category: cat.trim(),
+                  });
+                  console.log("Transaction added successfully");
+                } catch (error) {
+                  handleError(error);
+                }
                 menu();
               });
             });
@@ -86,7 +105,7 @@ function menu() {
         break;
 
       case "6":
-        console.log(`Total expenses: ${tracker.getTotalexpenses()}`);
+        console.log(`Total expenses: ${tracker.getTotalExpenses()}`);
         menu();
         break;
 
@@ -96,48 +115,80 @@ function menu() {
           JSON.stringify(tracker.getTransactionCountPerCategory(), null, 2),
         );
         menu();
+        break;
 
       case "8":
         rl.question("Enter transaction ID: ", (id) => {
           try {
             const transaction = tracker.getTransactionById(id.trim());
-            if (transaction) {
-              console.log(JSON.stringify(transaction, null, 2));
-            } else {
-              console.log("Transaction not found.");
-            }
+            console.log(JSON.stringify(transaction, null, 2));
           } catch (error) {
-            if (error instanceof AppError) console.log(error.message);
-            else throw error;
+            handleError(error);
           }
           menu();
         });
         break;
 
       case "9":
-        rl.question("Enter transaction ID to update:", (id) => {
-          try {
-            const updateId = tracker.updateTransaction(id.trim(), {});
-            console.log(
-              "Updated transaction:",
-              JSON.stringify(updateId, null, 2),
-            );
-          } catch (error) {
-            if (error instanceof AppError) console.log(error.message);
-            else throw error;
-          }
-          menu();
+        rl.question("Enter transaction ID to update: ", (id) => {
+          rl.question("Description (blank to skip): ", (desc) => {
+            rl.question("Amount (blank to skip): ", (amt) => {
+              rl.question("Type income/expense (blank to skip): ", (type) => {
+                rl.question("Category (blank to skip): ", (cat) => {
+                  try {
+                    const input: UpdateTransactionInput = {};
+
+                    if (desc.trim()) input.description = desc.trim();
+
+                    if (amt.trim()) {
+                      const amount = parseFloat(amt);
+                      if (Number.isNaN(amount)) {
+                        console.log("Amount must be a number");
+                        menu();
+                        return;
+                      }
+                      input.amount = amount;
+                    }
+
+                    if (type.trim()) {
+                      const trimmedType = type.trim();
+                      if (
+                        trimmedType !== "income" &&
+                        trimmedType !== "expense"
+                      ) {
+                        console.log("Type must be 'income' or 'expense'");
+                        menu();
+                        return;
+                      }
+                      input.type = trimmedType as TransactionType;
+                    }
+
+                    if (cat.trim()) input.category = cat.trim();
+
+                    const updated = tracker.updateTransaction(
+                      id.trim(),
+                      input,
+                    );
+                    console.log("Updated transaction:");
+                    console.log(JSON.stringify(updated, null, 2));
+                  } catch (error) {
+                    handleError(error);
+                  }
+                  menu();
+                });
+              });
+            });
+          });
         });
         break;
 
       case "10":
-        rl.question("Enter transaction ID to delete:", (id) => {
+        rl.question("Enter transaction ID to delete: ", (id) => {
           try {
-            const deleteId = tracker.deleteTransaction(id.trim());
-            console.log("Deleted transaction:", deleteId);
+            tracker.deleteTransaction(id.trim());
+            console.log("Transaction deleted successfully.");
           } catch (error) {
-            if (error instanceof AppError) console.log(error.message);
-            else throw error;
+            handleError(error);
           }
           menu();
         });
@@ -145,34 +196,37 @@ function menu() {
 
       case "11":
         rl.question(
-          "Filter by type (income/expense) or category (leave blank for no filter): ",
+          "Filter by type (income/expense) or category (blank = show all): ",
           (input) => {
             try {
-              const value = input.trim().toLocaleLowerCase();
-              const filters: TransactionFilters = {};
+              const value = input.trim().toLowerCase();
 
-              if (value) {
-                const transactionType =
-                  value === "income" || value === "expense";
+              if (!value) {
+                const all = tracker.listTransactions();
+                if (all.length === 0) {
+                  console.log("No transactions yet.");
+                } else {
+                  console.log(JSON.stringify(all, null, 2));
+                }
+              } else {
+                const filters: TransactionFilters = {};
 
-                if (transactionType) {
+                if (value === "income" || value === "expense") {
                   filters.type = value;
                 } else {
                   filters.category = value;
                 }
-                const filteredTransactions = tracker.listTransactions(filters);
+
+                const filteredTransactions =
+                  tracker.listTransactions(filters);
                 if (filteredTransactions.length === 0) {
                   console.log("No transactions match the filter.");
                 } else {
-                  console.log(
-                    "Filtered transactions:",
-                    JSON.stringify(filteredTransactions, null, 2),
-                  );
+                  console.log(JSON.stringify(filteredTransactions, null, 2));
                 }
               }
             } catch (error) {
-              if (error instanceof AppError) console.log(error.message);
-              else throw error;
+              handleError(error);
             }
             menu();
           },
@@ -182,7 +236,7 @@ function menu() {
       case "12":
         console.log("Exiting...");
         rl.close();
-        break;
+        process.exit(0);
 
       default:
         console.log("Invalid option. Choose 1-12.");

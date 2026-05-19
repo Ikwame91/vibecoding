@@ -5,9 +5,7 @@ import type {
 } from "../models/transaction.js";
 import { AppError } from "./errors.js";
 
-//initialize Transaction 
-  
-
+//initialize Transaction
 
 export function assertValidAmount(amount: number) {
   //Nan or <=0-> throw AppError
@@ -23,34 +21,39 @@ export function assertNonEmpty(value: string, fieldName: string) {
   }
 }
 
-export function assertValidType(type:string){
-    //not income/expense -- throw
-    if(type !== "income" && type !== "expense"){
-        throw new AppError("Type must be 'income' or 'expense'");
-    }
+export function assertValidType(type: string) {
+  //not income/expense -- throw
+  if (type !== "income" && type !== "expense") {
+    throw new AppError("Type must be 'income' or 'expense'");
+  }
 }
 
+export function validateCreateInput(input: CreateTransactionInput) {
+  assertNonEmpty(input.description, "Description");
+  assertValidAmount(input.amount);
+  assertValidType(input.type);
+  assertNonEmpty(input.category, "Category");
+}
 
-export function validateCreateInput(input: CreateTransactionInput){
+export function validateUpdateInput(input: UpdateTransactionInput): void {
+  if (
+    input.description === undefined &&
+    input.amount === undefined &&
+    input.type === undefined &&
+    input.category === undefined
+  ) {
+    throw new AppError("At least one field must be provided to update");
+  }
+  if (input.description !== undefined) {
     assertNonEmpty(input.description, "Description");
+  }
+  if (input.amount !== undefined) {
     assertValidAmount(input.amount);
+  }
+  if (input.type !== undefined) {
     assertValidType(input.type);
+  }
+  if (input.category !== undefined) {
     assertNonEmpty(input.category, "Category");
-
-}
-
-export function validateInput(input: UpdateTransactionInput){
-    if(input.description !== undefined){
-        assertNonEmpty(input.description, "Description");
-    }
-    if(input.amount !== undefined){
-        assertValidAmount(input.amount);
-    }
-    if(input.type !== undefined){
-        assertValidType(input.type);
-    }
-    if(input.category !== undefined){
-        assertNonEmpty(input.category, "Category");
-    }
-    throw new AppError("At least one field must be provided to update")
+  }
 }

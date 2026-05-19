@@ -6,7 +6,7 @@ import type {
 } from "../models/transaction.js";
 import { randomUUID } from "node:crypto";
 import { loadTransactions, saveTransactions } from "../utils/storage.js";
-import { validateCreateInput, validateInput } from "./validation.js";
+import { validateCreateInput, validateUpdateInput } from "./validation.js";
 import { AppError } from "./errors.js";
 
 export class ExpenseTracker {
@@ -41,10 +41,9 @@ export class ExpenseTracker {
     return transaction;
   }
 
-  deleteTransaction(id: string) {
-    //fidn index if -1 throw;splcie;persist(); return true
+  deleteTransaction(id: string): boolean {
     const index = this.transactions.findIndex((t) => t.id === id);
-    if (index === -1) throw new AppError("Transaction not found ");
+    if (index === -1) throw new AppError("Transaction not found");
 
     this.transactions.splice(index, 1);
     this.persist();
@@ -52,7 +51,7 @@ export class ExpenseTracker {
   }
 
   updateTransaction(id: string, input: UpdateTransactionInput): Transaction {
-    validateInput(input);
+    validateUpdateInput(input);
 
     // Find index of the transaction
     const index = this.transactions.findIndex((t) => t.id === id);
@@ -89,8 +88,7 @@ export class ExpenseTracker {
     }, 0);
   }
 
-  //array.reduce((accumulator,currentValue)=>{},initialValue)
-  getTotalexpenses() {
+  getTotalExpenses() {
     return this.transactions.reduce((total, e) => {
       if (e.type === "expense") {
         return total + e.amount;
@@ -100,7 +98,7 @@ export class ExpenseTracker {
   }
 
   getBalance() {
-    return this.getTotalIncome() - this.getTotalexpenses();
+    return this.getTotalIncome() - this.getTotalExpenses();
   }
 
   getReportByCategory() {
