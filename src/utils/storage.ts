@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 import type { Transaction } from "../models/transaction.js";
 
 const filePath = path.join(import.meta.dirname, "transactions.json");

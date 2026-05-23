@@ -1,0 +1,42 @@
+[
+  {
+    "id": "622e094c-c656-44c3-93f5-15b19c24961e",
+    "description": "food and clothes",
+    "amount": 56,
+    "type": "expense",
+    "category": "food",
+    "date": "2026-05-16T12:33:56.514Z"
+  },
+  {
+    "id": "507bbc9f-98f9-4b23-a520-c1c4ff6e4ac0",
+    "description": "transport",
+    "amount": 800,
+    "type": "expense",
+    "category": "transport",
+    "date": "2026-05-16T18:48:51.158Z"
+  },
+  {
+    "id": "0b8e4c08-f034-4349-b066-dac446165fcb",
+    "description": "food added to water",
+    "amount": 7800,
+    "type": "expense",
+    "category": "food",
+    "date": "2026-05-16T18:49:46.193Z"
+  },
+  {
+    "id": "6d3cce89-e157-4841-8e03-7da39e0b5657",
+    "description": "salary paid",
+    "amount": 200000,
+    "type": "income",
+    "category": "salary",
+    "date": "2026-05-16T18:50:59.710Z"
+  },
+  {
+    "id": "06c50f56-3b61-4122-b06d-a1fd891662d5",
+    "description": "derivation of delegates",
+    "amount": 600,
+    "type": "income",
+    "category": "salary",
+    "date": "2026-05-18T22:38:13.873Z"
+  }
+]

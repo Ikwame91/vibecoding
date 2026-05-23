@@ -2,9 +2,9 @@ import type {
   TransactionFilters,
   TransactionType,
   UpdateTransactionInput,
-} from "./models/transaction.js";
-import { AppError } from "./services/errors.js";
-import { ExpenseTracker } from "./services/expenseTracker.js";
+} from "./src/models/transaction.js";
+import { AppError } from "./src/services/errors.js";
+import { ExpenseTracker } from "./src/services/expenseTracker.js";
 import readline from "readline";
 
 const tracker = new ExpenseTracker();
@@ -46,10 +46,7 @@ function menu() {
               rl.question("Category: ", (cat) => {
                 try {
                   const trimmedType = type.trim();
-                  if (
-                    trimmedType !== "income" &&
-                    trimmedType !== "expense"
-                  ) {
+                  if (trimmedType !== "income" && trimmedType !== "expense") {
                     console.log("Type must be 'income' or 'expense'");
                     menu();
                     return;
@@ -165,10 +162,7 @@ function menu() {
 
                     if (cat.trim()) input.category = cat.trim();
 
-                    const updated = tracker.updateTransaction(
-                      id.trim(),
-                      input,
-                    );
+                    const updated = tracker.updateTransaction(id.trim(), input);
                     console.log("Updated transaction:");
                     console.log(JSON.stringify(updated, null, 2));
                   } catch (error) {
@@ -217,8 +211,7 @@ function menu() {
                   filters.category = value;
                 }
 
-                const filteredTransactions =
-                  tracker.listTransactions(filters);
+                const filteredTransactions = tracker.listTransactions(filters);
                 if (filteredTransactions.length === 0) {
                   console.log("No transactions match the filter.");
                 } else {
