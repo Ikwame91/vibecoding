@@ -38,5 +38,13 @@
     "type": "income",
     "category": "salary",
     "date": "2026-05-18T22:38:13.873Z"
+  },
+  {
+    "id": "012972d1-eb7a-4409-aee6-d02bf886045c",
+    "description": "Lunch at work",
+    "amount": 25,
+    "type": "expense",
+    "category": "food",
+    "date": "2026-05-23T16:02:07.681Z"
   }
 ]

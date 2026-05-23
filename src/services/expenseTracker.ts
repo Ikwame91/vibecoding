@@ -36,14 +36,14 @@ export class ExpenseTracker {
   getTransactionById(id: string): Transaction {
     const transaction = this.transactions.find((t) => t.id === id);
     if (!transaction) {
-      throw new AppError("Transaction not found");
+      throw new AppError("Transaction not found", 404);
     }
     return transaction;
   }
 
   deleteTransaction(id: string): boolean {
     const index = this.transactions.findIndex((t) => t.id === id);
-    if (index === -1) throw new AppError("Transaction not found");
+    if (index === -1) throw new AppError("Transaction not found",404);
 
     this.transactions.splice(index, 1);
     this.persist();
@@ -55,7 +55,7 @@ export class ExpenseTracker {
 
     // Find index of the transaction
     const index = this.transactions.findIndex((t) => t.id === id);
-    if (index === -1) throw new AppError("Transaction not found");
+    if (index === -1) throw new AppError("Transaction not found,",404);
 
     // Update existing transaction by merging input
     const existing = this.transactions[index]!;
