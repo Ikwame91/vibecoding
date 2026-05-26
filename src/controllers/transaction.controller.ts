@@ -38,3 +38,16 @@ export function getbyId(req: Request, res: Response, next: NextFunction) {
     next(error);
   }
 }
+
+  export function update(req:Request, res:Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string
+      const updated =tracker.updateTransaction(id, req.body)
+      res.json(updated)
+
+    } catch (error) {
+      next(error);
+    }
+
+
+  }
