@@ -62,5 +62,29 @@
     "type": "expense",
     "category": "dispenses",
     "date": "2026-05-27T08:13:09.156Z"
+  },
+  {
+    "id": "17617b7d-e638-4043-9087-38baf1ef86ac",
+    "description": "wife allowance",
+    "amount": 5000,
+    "type": "expense",
+    "category": "dispenses",
+    "date": "2026-05-27T11:45:20.346Z"
+  },
+  {
+    "id": "69bb8bf6-aec5-43a8-a233-44792d565315",
+    "description": "wife allowance",
+    "amount": 5000,
+    "type": "expense",
+    "category": "dispenses",
+    "date": "2026-05-27T11:45:25.326Z"
+  },
+  {
+    "id": "9b658c33-34e6-4d1a-a166-50ef21185bbe",
+    "description": "wife allowance",
+    "amount": 5000,
+    "type": "expense",
+    "category": "dispenses",
+    "date": "2026-05-27T11:45:29.853Z"
   }
 ]
