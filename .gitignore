@@ -14,5 +14,6 @@ coverage
 logs
 *.log
 *.tmp
+*.json
 *.bak
 .idea

@@ -5,19 +5,23 @@ import type {
   UpdateTransactionInput,
 } from "../models/transaction.js";
 import { randomUUID } from "node:crypto";
-import { loadTransactions, saveTransactions } from "../utils/storage.js";
+// import { loadTransactions, saveTransactions } from "../utils/storage.js";
 import { validateCreateInput, validateUpdateInput } from "./validation.js";
 import { AppError } from "./errors.js";
+import { TransactionRepository } from "../repositories/transactionRepository.js";
 
 export class ExpenseTracker {
   private transactions: Transaction[] = [];
-  private persist(): void {
-    saveTransactions(this.transactions);
+
+  constructor(private readonly repostory: TransactionRepository) {
+    this.transactions = this.repostory.loadAll();
+  }
+  
+  private persist() {
+    this.repostory.saveAll(this.transactions);
   }
 
-  constructor() {
-    this.transactions = loadTransactions();
-  }
+
   addTransaction(input: CreateTransactionInput): Transaction {
     validateCreateInput(input);
     const transaction: Transaction = {
@@ -43,7 +47,7 @@ export class ExpenseTracker {
 
   deleteTransaction(id: string): boolean {
     const index = this.transactions.findIndex((t) => t.id === id);
-    if (index === -1) throw new AppError("Transaction not found",404);
+    if (index === -1) throw new AppError("Transaction not found", 404);
 
     this.transactions.splice(index, 1);
     this.persist();
@@ -55,7 +59,7 @@ export class ExpenseTracker {
 
     // Find index of the transaction
     const index = this.transactions.findIndex((t) => t.id === id);
-    if (index === -1) throw new AppError("Transaction not found",404);
+    if (index === -1) throw new AppError("Transaction not found", 404);
 
     // Update existing transaction by merging input
     const existing = this.transactions[index]!;

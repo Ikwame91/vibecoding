@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { tracker } from "../tracker-instance.js";
 import { TransactionFilters } from "../models/transaction.js";
+import { AppError } from "../services/errors.js";
 
 export function list(req: Request, res: Response, next: NextFunction) {
   try {
@@ -10,7 +11,7 @@ export function list(req: Request, res: Response, next: NextFunction) {
     if (req.query.type !== undefined) {
       const type = String(req.query.type);
       if (type !== "income" && type !== "expense") {
-        throw new Error("Invalid type filter");
+        throw new AppError("Type must be 'income' or 'expense'", 400);
       }
       filters.type = type;
     }
@@ -39,7 +40,62 @@ export function getbyId(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-  export function update(req:Request, res:Response, next: NextFunction) {
+export function balance(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json({ balance: tracker.getBalance() });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export function reportByCategory(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    res.json(tracker.getReportByCategory());
+  } catch (error) {
+    next(error);
+  }
+}
+
+export function totalIncome(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json({ totalIncome: tracker.getTotalIncome() });
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+export function totalExpenses(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    res.json({ totalExpenses: tracker.getTotalExpenses() });
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+
+export function countPerCategory(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    res.json(tracker.getTransactionCountPerCategory());
+  } catch (error) {
+    next(error);
+  }
+}
+
+export function update(req:Request, res:Response, next: NextFunction) {
     try {
       const id = req.params.id as string
       const updated =tracker.updateTransaction(id, req.body)
@@ -56,6 +112,7 @@ export function remove(req:Request, res:Response, next: NextFunction) {
   try{
   const id = req.params.id as string
   tracker.deleteTransaction(id);
+  res.status(204).send();
   } catch (error) {
     next(error);
   }
