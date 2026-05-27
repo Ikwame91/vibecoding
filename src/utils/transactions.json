@@ -1,21 +1,5 @@
 [
   {
-    "id": "622e094c-c656-44c3-93f5-15b19c24961e",
-    "description": "food and clothes",
-    "amount": 56,
-    "type": "expense",
-    "category": "food",
-    "date": "2026-05-16T12:33:56.514Z"
-  },
-  {
-    "id": "507bbc9f-98f9-4b23-a520-c1c4ff6e4ac0",
-    "description": "transport",
-    "amount": 800,
-    "type": "expense",
-    "category": "transport",
-    "date": "2026-05-16T18:48:51.158Z"
-  },
-  {
     "id": "0b8e4c08-f034-4349-b066-dac446165fcb",
     "description": "food added to water",
     "amount": 7800,
@@ -46,5 +30,37 @@
     "type": "expense",
     "category": "food",
     "date": "2026-05-23T16:02:07.681Z"
+  },
+  {
+    "id": "5cebb0c8-e91b-4b16-9c9f-471f34873b1f",
+    "description": "Lunch",
+    "amount": 20,
+    "type": "expense",
+    "category": "food",
+    "date": "2026-05-26T21:20:54.959Z"
+  },
+  {
+    "id": "972a4ed6-0020-4daf-a6be-f31493dabc67",
+    "description": "month payments",
+    "amount": 7000,
+    "type": "income",
+    "category": "workings",
+    "date": "2026-05-27T08:12:10.290Z"
+  },
+  {
+    "id": "72731b58-ad39-47ac-a6b5-0d62feb62512",
+    "description": "drop offs made",
+    "amount": 3000,
+    "type": "income",
+    "category": "workings",
+    "date": "2026-05-27T08:12:27.965Z"
+  },
+  {
+    "id": "aa478dd8-059c-4b6c-8845-bf5c62d33200",
+    "description": "wife allowance",
+    "amount": 5000,
+    "type": "expense",
+    "category": "dispenses",
+    "date": "2026-05-27T08:13:09.156Z"
   }
 ]

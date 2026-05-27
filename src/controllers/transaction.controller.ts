@@ -50,4 +50,13 @@ export function getbyId(req: Request, res: Response, next: NextFunction) {
     }
 
 
+}
+
+export function remove(req:Request, res:Response, next: NextFunction) {
+  try{
+  const id = req.params.id as string
+  tracker.deleteTransaction(id);
+  } catch (error) {
+    next(error);
   }
+}

@@ -3,6 +3,10 @@ node_modules/
 utils/transactions.json
 --what else can i add in gitignore
 .DS_Store
+docs/
+.cursor/
+.cursorrules/
+
 dist/
 build
 coverage

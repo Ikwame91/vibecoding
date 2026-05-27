@@ -55,7 +55,7 @@ export class ExpenseTracker {
 
     // Find index of the transaction
     const index = this.transactions.findIndex((t) => t.id === id);
-    if (index === -1) throw new AppError("Transaction not found,",404);
+    if (index === -1) throw new AppError("Transaction not found",404);
 
     // Update existing transaction by merging input
     const existing = this.transactions[index]!;
