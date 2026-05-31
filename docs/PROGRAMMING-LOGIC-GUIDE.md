@@ -127,24 +127,24 @@ Use this like a resonance checklist. Slow down and answer in words, not code.
 
 ### About the data
 
-5. **What object crosses the boundary?** (CreateTransactionInput, UpdateTransactionInput, filters)
-6. **Which fields are required vs optional?**
-7. **For updates: full replace or partial patch?** (We use **partial patch**.)
+1. **What object crosses the boundary?** (CreateTransactionInput, UpdateTransactionInput, filters)
+2. **Which fields are required vs optional?**
+3. **For updates: full replace or partial patch?** (We use **partial patch**.)
 
 ### About responsibility
 
-8. **Which layer enforces the rule?** (Answer for business rules: **service + validation**, not only CLI.)
-9. **Who will call this besides the CLI?** (Future: REST API, tests — they must get the same rules.)
+1. **Which layer enforces the rule?** (Answer for business rules: **service + validation**, not only CLI.)
+2. **Who will call this besides the CLI?** (Future: REST API, tests — they must get the same rules.)
 
 ### About control flow
 
-10. **If the user picks menu option X, what runs — exactly one path or several?**
-11. **Where can an error be thrown?** Is that entire path inside a `try/catch`?
+1. **If the user picks menu option X, what runs — exactly one path or several?**
+2. **Where can an error be thrown?** Is that entire path inside a `try/catch`?
 
 ### About persistence
 
-12. **When is data written to disk?** (After every mutation: add, update, delete.)
-13. **What happens on restart?** (Load file, revive dates.)
+1. **When is data written to disk?** (After every mutation: add, update, delete.)
+2. **What happens on restart?** (Load file, revive dates.)
 
 ---
 

@@ -6,8 +6,8 @@ import type {
 import { AppError } from "./src/services/errors.js";
 import { ExpenseTracker } from "./src/services/expenseTracker.js";
 import readline from "readline";
+import { tracker } from "./src/tracker-instance.js";
 
-const tracker = new ExpenseTracker();
 
 const rl = readline.createInterface({
   input: process.stdin,

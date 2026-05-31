@@ -12,12 +12,12 @@ import { TransactionRepository } from "../repositories/transactionRepository.js"
 export class ExpenseTracker {
   private transactions: Transaction[] = [];
 
-  constructor(private readonly repostory: TransactionRepository) {
-    this.transactions = this.repostory.loadAll();
+  constructor(private readonly repository: TransactionRepository) {
+    this.transactions = this.repository.loadAll();
   }
 
   private persist() {
-    this.repostory.saveAll(this.transactions);
+    this.repository.saveAll(this.transactions);
   }
 
   addTransaction(input: CreateTransactionInput): Transaction {
