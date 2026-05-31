@@ -15,7 +15,8 @@ export function list(req: Request, res: Response, next: NextFunction) {
       }
       filters.type = type;
     }
-    res.json(tracker.listTransactions(filters));
+    const userId = (req as any).user?.id || "implicit";
+    res.json(tracker.listTransactions(filters, userId));
   } catch (error) {
     return next(error);
   }
@@ -68,20 +69,13 @@ export function totalIncome(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-
-export function totalExpenses(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function totalExpenses(req: Request, res: Response, next: NextFunction) {
   try {
     res.json({ totalExpenses: tracker.getTotalExpenses() });
   } catch (error) {
     next(error);
   }
 }
-
-
 
 export function countPerCategory(
   req: Request,
@@ -95,24 +89,21 @@ export function countPerCategory(
   }
 }
 
-export function update(req:Request, res:Response, next: NextFunction) {
-    try {
-      const id = req.params.id as string
-      const updated =tracker.updateTransaction(id, req.body)
-      res.json(updated)
-
-    } catch (error) {
-      next(error);
-    }
-
-
+export function update(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = req.params.id as string;
+    const updated = tracker.updateTransaction(id, req.body);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
 }
 
-export function remove(req:Request, res:Response, next: NextFunction) {
-  try{
-  const id = req.params.id as string
-  tracker.deleteTransaction(id);
-  res.status(204).send();
+export function remove(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = req.params.id as string;
+    tracker.deleteTransaction(id);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

@@ -20,7 +20,10 @@ export class ExpenseTracker {
     this.repository.saveAll(this.transactions);
   }
 
-  addTransaction(input: CreateTransactionInput): Transaction {
+  addTransaction(
+    input: CreateTransactionInput,
+    userId = "system",
+  ): Transaction {
     validateCreateInput(input);
     const transaction: Transaction = {
       id: randomUUID(),
@@ -29,6 +32,7 @@ export class ExpenseTracker {
       type: input.type,
       category: input.category.trim(),
       date: new Date(),
+      userId,
     };
     this.transactions.push(transaction);
     this.persist();
@@ -115,7 +119,10 @@ export class ExpenseTracker {
     );
   }
 
-  listTransactions(filters?: TransactionFilters): Transaction[] {
+  listTransactions(
+    filters?: TransactionFilters,
+    userId = "system",
+  ): Transaction[] {
     let result = [...this.transactions];
 
     if (filters?.category) {

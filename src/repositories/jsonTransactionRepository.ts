@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import type { Transaction } from "../models/transaction.js";
 import type { TransactionRepository } from "./transactionRepository.js";
-import {JSON_PATH} from "../config.js";
+import { JSON_PATH } from "../config.js";
 
 const filePath = JSON_PATH;
 
@@ -16,6 +16,7 @@ export class JsonTransactionRepository implements TransactionRepository {
       return raw.map((t: Transaction) => ({
         ...t,
         date: new Date(t.date),
+        userId: t.userId ?? "system",
       }));
     } catch {
       console.error("Could not read transactions file, starting fresh.");

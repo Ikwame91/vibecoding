@@ -10,7 +10,8 @@ db.exec(
     amount      REAL NOT NULL,
     type        TEXT NOT NULL CHECK(type IN ('income', 'expense')),
     category    TEXT NOT NULL,
-    date        TEXT NOT NULL
+    date        TEXT NOT NULL,
+    userId     TEXT NOT NULL
   );`,
 );
 
@@ -22,17 +23,18 @@ function rowToTransaction(row: Record<string, unknown>): Transaction {
     type: row.type as Transaction["type"],
     category: row.category as string,
     date: new Date(row.date as string),
+    userId: row.userId as string,
   };
 }
 
 const selectAll = db.prepare(
-  "SELECT id, description, amount,type,category, date FROM transactions ORDER BY date DESC",
+  "SELECT id, description, amount,type,category,  date, userId FROM transactions ORDER BY date DESC",
 );
 
 const insertOrReplace = db.prepare(
   `
-  INSERT OR REPLACE INTO transactions(id, description, amount, type, category,date)
-  VALUES (@id, @description ,@amount ,@type, @category, @date)
+  INSERT OR REPLACE INTO transactions(id, description, amount, type, category,date, userId)
+  VALUES (@id, @description ,@amount ,@type, @category, @date, @userId)
   `,
 );
 
@@ -56,6 +58,7 @@ export class SqliteTransactionRepository implements TransactionRepository {
           type: t.type,
           category: t.category,
           date: t.date.toISOString(),
+          userId: t.userId,
         });
       }
     });

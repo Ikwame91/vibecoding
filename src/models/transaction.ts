@@ -7,6 +7,7 @@ export interface Transaction {
     type : TransactionType;
     category: string
     date : Date;
+    userId : string; 
 }
 
 export interface CreateTransactionInput{

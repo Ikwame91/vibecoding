@@ -2,10 +2,14 @@ import express from "express";
 import cors from "cors";
 import transactionRouter from "./routes/transaction.routes.js";
 import {errorHandler} from "./middleware/error_middleware.js";
+import {devAuth} from "./middleware/auth_middleware.js";
+
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(devAuth);
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
