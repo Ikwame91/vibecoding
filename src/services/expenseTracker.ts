@@ -15,11 +15,10 @@ export class ExpenseTracker {
   constructor(private readonly repostory: TransactionRepository) {
     this.transactions = this.repostory.loadAll();
   }
-  
+
   private persist() {
     this.repostory.saveAll(this.transactions);
   }
-
 
   addTransaction(input: CreateTransactionInput): Transaction {
     validateCreateInput(input);

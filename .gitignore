@@ -6,6 +6,11 @@ utils/transactions.json
 docs/
 .cursor/
 .cursorrules/
+# Ignore runtime DB files
+data/
+data/*.db
+/utils/transactions.json/*
+src/utils/*.backup.*
 
 dist/
 build

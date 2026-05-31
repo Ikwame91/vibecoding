@@ -1,8 +1,10 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "node:url";
 import type { Transaction } from "../models/transaction.js";
 
-const filePath = path.join(import.meta.dirname, "transactions.json");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const filePath = path.join(__dirname, "transactions.json");
 
 export function loadTransactions(): Transaction[] {
   if (!fs.existsSync(filePath)) return [];

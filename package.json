@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:cli": "npx tsx index.ts",
-    "start:api": "npx tsx src/server.ts"
+    "start:api": "npx tsx src/server.ts",
+    "start:migrations": "npx tsx src/scripts/migrate-json-to-sqlite.ts"
   },
   "keywords": [],
   "author": "",

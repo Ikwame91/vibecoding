@@ -1,42 +1,64 @@
-import Database from 'better-sqlite3';
-import type { Transaction } from '../models/transaction.js'
-import type { TransactionRepository } from './transactionRepository.js'
+import type { Transaction } from "../models/transaction.js";
+import type { TransactionRepository } from "./transactionRepository.js";
+import db from "../db/database.js";
 
+db.exec(
+  `
+     CREATE TABLE IF NOT EXISTS transactions (
+    id          TEXT PRIMARY KEY,
+    description TEXT NOT NULL,
+    amount      REAL NOT NULL,
+    type        TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+    category    TEXT NOT NULL,
+    date        TEXT NOT NULL
+  );`,
+);
 
-const DB_PATH = process.env.TRANSACTIONS_DB_PATH || "data/transactions.db";
+function rowToTransaction(row: Record<string, unknown>): Transaction {
+  return {
+    id: row.id as string,
+    description: row.description as string,
+    amount: row.amount as number,
+    type: row.type as Transaction["type"],
+    category: row.category as string,
+    date: new Date(row.date as string),
+  };
+}
+
+const selectAll = db.prepare(
+  "SELECT id, description, amount,type,category, date FROM transactions ORDER BY date DESC",
+);
+
+const insertOrReplace = db.prepare(
+  `
+  INSERT OR REPLACE INTO transactions(id, description, amount, type, category,date)
+  VALUES (@id, @description ,@amount ,@type, @category, @date)
+  `,
+);
+
+const deleteAll = db.prepare("DELETE FROM transactions");
 
 export class SqliteTransactionRepository implements TransactionRepository {
-    private db: Database.Database
+  loadAll(): Transaction[] {
+    const rows = selectAll.all() as Record<string, unknown>[];
+    return rows.map(rowToTransaction);
+  }
 
-    constructor(dbPath = DB_PATH) {
-        this.db = new Database(dbPath);
-        this.ensureSchema();
-    }
+  saveAll(transactions: Transaction[]): void {
+    const persist = db.transaction((items: Transaction[]) => {
+      deleteAll.run();
 
-    private ensureSchema() {
-        this.db.exec(`
-             CREATE TABLE IF NOT EXISTS transactions (
-        id TEXT PRIMARY KEY,
-        description TEXT NOT NULL,
-        amount REAL NOT NULL,
-          type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
-        category TEXT NOT NULL,
-        date TEXT NOT NULL
-      );
-
-        `)
-    }
-    loadAll(): Transaction[] {
-        const rows = this.db.prepare("SELECT id, description, amount, type, category, date FROM transactions").all();
-        return rows.map((r: any) => ({
-            id: r.id,
-            description: r.description,
-            amount: r.amount,
-            type: r.type,
-            category: r.category,
-            date: new Date(r.date),
-        }));
-    }
-
-    saveAll(transactions:Transaction[]):  { }
+      for (const t of items) {
+        insertOrReplace.run({
+          id: t.id,
+          description: t.description,
+          amount: t.amount,
+          type: t.type,
+          category: t.category,
+          date: t.date.toISOString(),
+        });
+      }
+    });
+    persist(transactions);
+  }
 }
