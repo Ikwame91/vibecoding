@@ -54,7 +54,8 @@ db.exec(
     amount      REAL NOT NULL,
     type        TEXT NOT NULL CHECK(type IN ('income', 'expense')),
     category    TEXT NOT NULL,
-    date        TEXT NOT NULL
+    date        TEXT NOT NULL,
+    userId      TEXT NOT NULL DEFAULT 'implicit'
   );
 
     `,
@@ -64,8 +65,8 @@ console.log(`🗄️  Database ready at: ${DB_PATH_LOCAL}`);
 
 //INSERT OR IGNORE -- If a row with the id already exists, skip it
 const insert = db.prepare(`
-  INSERT OR IGNORE INTO transactions (id, description, amount, type, category, date)
-  VALUES (@id, @description, @amount, @type, @category, @date)
+  INSERT OR IGNORE INTO transactions (id, description, amount, type, category, date, userId)
+  VALUES (@id, @description, @amount, @type, @category, @date, @userId)
 `);
 
 const migrate = db.transaction((items: Record<string, unknown>[]) => {
@@ -97,6 +98,10 @@ const migrate = db.transaction((items: Record<string, unknown>[]) => {
       type: t.type,
       category: t.category,
       date: dateStr,
+      userId:
+        typeof t.userId === "string" && t.userId.trim()
+          ? t.userId.trim()
+          : "implicit",
     });
 
     // result.changes is 1 if the row was inserted, 0 if it was skipped (OR IGNORE).

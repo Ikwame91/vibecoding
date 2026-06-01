@@ -67,7 +67,8 @@ export function reportByCategory(
 
 export function totalIncome(req: Request, res: Response, next: NextFunction) {
   try {
-    res.json({ totalIncome: tracker.getTotalIncome() });
+    const userId = (req as any).user?.id || "implicit";
+    res.json({ totalIncome: tracker.getTotalIncome(userId) });
   } catch (error) {
     next(error);
   }
@@ -75,19 +76,22 @@ export function totalIncome(req: Request, res: Response, next: NextFunction) {
 
 export function totalExpenses(req: Request, res: Response, next: NextFunction) {
   try {
-    res.json({ totalExpenses: tracker.getTotalExpenses() });
+    const userId = (req as any).user?.id || "implicit";
+    res.json({ totalExpenses: tracker.getTotalExpenses(userId) });
   } catch (error) {
     next(error);
   }
 }
 
 export function countPerCategory(
+
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    res.json(tracker.getTransactionCountPerCategory());
+    const userId = (req as any).user?.id || "implicit";
+    res.json(tracker.getTransactionCountPerCategory( userId));
   } catch (error) {
     next(error);
   }

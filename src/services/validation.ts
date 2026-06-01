@@ -8,8 +8,7 @@ import { AppError } from "./errors.js";
 //initialize Transaction
 
 export function assertValidAmount(amount: number) {
-  //Nan or <=0-> throw AppError
-  if (isNaN(amount) || amount <= 0) {
+  if (typeof amount !== "number" || Number.isNaN(amount) || amount <= 0) {
     throw new AppError("Amount must be a positive number");
   }
 }

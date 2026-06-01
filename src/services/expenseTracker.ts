@@ -110,7 +110,7 @@ export class ExpenseTracker {
   }
 
   getBalance(userId = "implicit") {
-    return this.getTotalIncome(userId) - this.getTotalExpenses();
+    return this.getTotalIncome(userId) - this.getTotalExpenses(userId);
   }
 
   getReportByCategory(userId = "implicit") {
