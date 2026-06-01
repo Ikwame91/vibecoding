@@ -16,7 +16,7 @@ export class JsonTransactionRepository implements TransactionRepository {
       return raw.map((t: Transaction) => ({
         ...t,
         date: new Date(t.date),
-        userId: t.userId ?? "system",
+        userId: t.userId ?? "implicit",
       }));
     } catch {
       console.error("Could not read transactions file, starting fresh.");

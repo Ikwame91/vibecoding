@@ -24,7 +24,8 @@ export function list(req: Request, res: Response, next: NextFunction) {
 
 export function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const created = tracker.addTransaction(req.body);
+    const userId = (req as any).user?.id || "implicit";
+    const created = tracker.addTransaction(req.body, userId);
     res.status(201).json(created);
   } catch (error) {
     next(error);
@@ -33,8 +34,9 @@ export function create(req: Request, res: Response, next: NextFunction) {
 
 export function getbyId(req: Request, res: Response, next: NextFunction) {
   try {
+    const userId = (req as any).user?.id || "implicit";
     const id = req.params.id as string;
-    const transaction = tracker.getTransactionById(id);
+    const transaction = tracker.getTransactionById(id, userId);
     res.json(transaction);
   } catch (error) {
     next(error);
@@ -43,7 +45,8 @@ export function getbyId(req: Request, res: Response, next: NextFunction) {
 
 export function balance(req: Request, res: Response, next: NextFunction) {
   try {
-    res.json({ balance: tracker.getBalance() });
+    const userId = (req as any).user?.id || "implicit";
+    res.json({ balance: tracker.getBalance(userId) });
   } catch (error) {
     next(error);
   }
@@ -55,7 +58,8 @@ export function reportByCategory(
   next: NextFunction,
 ) {
   try {
-    res.json(tracker.getReportByCategory());
+    const userId = (req as any).user?.id || "implicit";
+    res.json(tracker.getReportByCategory(userId));
   } catch (error) {
     next(error);
   }
@@ -91,8 +95,9 @@ export function countPerCategory(
 
 export function update(req: Request, res: Response, next: NextFunction) {
   try {
+    const userId = (req as any).user?.id || "implicit";
     const id = req.params.id as string;
-    const updated = tracker.updateTransaction(id, req.body);
+    const updated = tracker.updateTransaction(id, req.body, userId);
     res.json(updated);
   } catch (error) {
     next(error);
@@ -101,8 +106,9 @@ export function update(req: Request, res: Response, next: NextFunction) {
 
 export function remove(req: Request, res: Response, next: NextFunction) {
   try {
+    const userId = (req as any).user?.id || "implicit";
     const id = req.params.id as string;
-    tracker.deleteTransaction(id);
+    tracker.deleteTransaction(id, userId);
     res.status(204).send();
   } catch (error) {
     next(error);

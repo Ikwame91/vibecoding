@@ -22,7 +22,7 @@ export class ExpenseTracker {
 
   addTransaction(
     input: CreateTransactionInput,
-    userId = "system",
+    userId = "implicit",
   ): Transaction {
     validateCreateInput(input);
     const transaction: Transaction = {
@@ -39,16 +39,20 @@ export class ExpenseTracker {
     return transaction;
   }
 
-  getTransactionById(id: string): Transaction {
-    const transaction = this.transactions.find((t) => t.id === id);
+  getTransactionById(id: string, userId = "implicit"): Transaction {
+    const transaction = this.transactions.find(
+      (t) => t.id === id && t.userId === userId,
+    );
     if (!transaction) {
       throw new AppError("Transaction not found", 404);
     }
     return transaction;
   }
 
-  deleteTransaction(id: string): boolean {
-    const index = this.transactions.findIndex((t) => t.id === id);
+  deleteTransaction(id: string, userId = "implicit"): boolean {
+    const index = this.transactions.findIndex(
+      (t) => t.id === id && t.userId === userId,
+    );
     if (index === -1) throw new AppError("Transaction not found", 404);
 
     this.transactions.splice(index, 1);
@@ -56,11 +60,17 @@ export class ExpenseTracker {
     return true;
   }
 
-  updateTransaction(id: string, input: UpdateTransactionInput): Transaction {
+  updateTransaction(
+    id: string,
+    input: UpdateTransactionInput,
+    userId = "implicit",
+  ): Transaction {
     validateUpdateInput(input);
 
     // Find index of the transaction
-    const index = this.transactions.findIndex((t) => t.id === id);
+    const index = this.transactions.findIndex(
+      (t) => t.id === id && t.userId === userId,
+    );
     if (index === -1) throw new AppError("Transaction not found", 404);
 
     // Update existing transaction by merging input
@@ -85,31 +95,28 @@ export class ExpenseTracker {
     return updated;
   }
 
-  getTotalIncome() {
+  getTotalIncome(userId = "implicit") {
     return this.transactions.reduce((total, t) => {
-      if (t.type === "income") {
-        return total + t.amount;
-      }
-      return total;
+      if (t.userId !== userId) return total;
+      return t.type === "income" ? total + t.amount : total;
     }, 0);
   }
 
-  getTotalExpenses() {
+  getTotalExpenses(userId = "implicit") {
     return this.transactions.reduce((total, e) => {
-      if (e.type === "expense") {
-        return total + e.amount;
-      }
-      return total;
+      if (e.userId !== userId) return total;
+      return e.type === "expense" ? total + e.amount : total;
     }, 0);
   }
 
-  getBalance() {
-    return this.getTotalIncome() - this.getTotalExpenses();
+  getBalance(userId = "implicit") {
+    return this.getTotalIncome(userId) - this.getTotalExpenses();
   }
 
-  getReportByCategory() {
+  getReportByCategory(userId = "implicit") {
     return this.transactions.reduce(
       (report, t) => {
+        if (t.userId !== userId) return report;
         report[t.category] =
           (report[t.category] || 0) +
           (t.type === "income" ? t.amount : -t.amount);
@@ -121,29 +128,26 @@ export class ExpenseTracker {
 
   listTransactions(
     filters?: TransactionFilters,
-    userId = "system",
+    userId = "implicit",
   ): Transaction[] {
-    let result = [...this.transactions];
+    let result = this.transactions.filter((t) => t.userId === userId);
 
-    if (filters?.category) {
+    if (filters?.category)
       result = result.filter((t) => t.category === filters.category);
-    }
 
-    if (filters?.type) {
-      result = result.filter((t) => t.type === filters.type);
-    }
-    if (filters?.from) {
-      result = result.filter((t) => t.date >= filters.from!);
-    }
-    if (filters?.to) {
-      result = result.filter((t) => t.date <= filters.to!);
-    }
+    if (filters?.type) result = result.filter((t) => t.type === filters.type);
+
+    if (filters?.from) result = result.filter((t) => t.date >= filters.from!);
+
+    if (filters?.to) result = result.filter((t) => t.date <= filters.to!);
+
     return result;
   }
 
-  getTransactionCountPerCategory() {
+  getTransactionCountPerCategory(userId = "implicit") {
     return this.transactions.reduce(
       (count, c) => {
+        if (c.userId !== userId) return count;
         count[c.category] = (count[c.category] || 0) + 1;
         return count;
       },
