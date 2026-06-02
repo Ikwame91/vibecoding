@@ -16,6 +16,26 @@ export function list(req: Request, res: Response, next: NextFunction) {
       filters.type = type;
     }
     const userId = (req as any).user?.id || "implicit";
+    if (req.query.from !== undefined) {
+      const from = new Date(String(req.query.from));
+      if (Number.isNaN(from.getTime())) {
+        throw new AppError("Invalid 'from' date", 400);
+      }
+
+      filters.from = from;
+    }
+    if (req.query.to !== undefined) {
+      const to = new Date(String(req.query.to));
+
+      if (Number.isNaN(to.getTime())) {
+        throw new AppError("To date must be a valid date", 400);
+      }
+      filters.to = to;
+    }
+    if (filters.from && filters.to && filters.from > filters.to) {
+      throw new AppError("From date cannot be after to date", 400);
+    }
+
     res.json(tracker.listTransactions(filters, userId));
   } catch (error) {
     return next(error);
@@ -84,14 +104,13 @@ export function totalExpenses(req: Request, res: Response, next: NextFunction) {
 }
 
 export function countPerCategory(
-
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
     const userId = (req as any).user?.id || "implicit";
-    res.json(tracker.getTransactionCountPerCategory( userId));
+    res.json(tracker.getTransactionCountPerCategory(userId));
   } catch (error) {
     next(error);
   }
