@@ -4,7 +4,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsx --test tests/**/*.test.ts",
     "start:cli": "npx tsx index.ts",
     "start:api": "npx tsx src/server.ts",
     "start:migrations": "npx tsx src/scripts/migrate-json-to-sqlite.ts"
