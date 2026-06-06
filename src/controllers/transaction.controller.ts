@@ -7,7 +7,7 @@ export function list(req: Request, res: Response, next: NextFunction) {
   try {
     const filters: TransactionFilters = {};
     if (req.query.category !== undefined)
-      filters.category = String(req.query.category);
+      filters.category = String(req.query.category).trim().toLocaleLowerCase();
     if (req.query.type !== undefined) {
       const type = String(req.query.type);
       if (type !== "income" && type !== "expense") {
@@ -15,7 +15,7 @@ export function list(req: Request, res: Response, next: NextFunction) {
       }
       filters.type = type;
     }
-    const userId = (req as any).user?.id || "implicit";
+    const userId = req.user?.id || "implicit";
     if (req.query.from !== undefined) {
       const from = new Date(String(req.query.from));
       if (Number.isNaN(from.getTime())) {
@@ -30,6 +30,8 @@ export function list(req: Request, res: Response, next: NextFunction) {
       if (Number.isNaN(to.getTime())) {
         throw new AppError("To date must be a valid date", 400);
       }
+
+      to.setHours(23, 59, 59, 999);
       filters.to = to;
     }
     if (filters.from && filters.to && filters.from > filters.to) {

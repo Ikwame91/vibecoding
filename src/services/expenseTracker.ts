@@ -5,7 +5,7 @@ import type {
   UpdateTransactionInput,
 } from "../models/transaction.js";
 import { randomUUID } from "node:crypto";
-import { validateCreateInput, validateUpdateInput } from "./validation.js";
+import { validateCreateInput, validateUpdateInput } from "./validation.transaction.js";
 import { AppError } from "./errors.js";
 import { TransactionRepository } from "../repositories/transactionRepository.js";
 
@@ -30,7 +30,7 @@ export class ExpenseTracker {
       description: input.description.trim(),
       amount: input.amount,
       type: input.type,
-      category: input.category.trim(),
+      category: input.category.trim().toLocaleLowerCase(),
       date: new Date(),
       userId,
     };
@@ -87,7 +87,7 @@ export class ExpenseTracker {
       updated.type = input.type;
     }
     if (input.category !== undefined) {
-      updated.category = input.category.trim();
+      updated.category = input.category.trim().toLocaleLowerCase();
     }
 
     this.transactions[index] = updated;

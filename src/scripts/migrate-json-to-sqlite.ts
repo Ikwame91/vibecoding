@@ -117,7 +117,7 @@ const migrate = db.transaction((items: Record<string, unknown>[]) => {
 const { migrated, skipped } = migrate(rows);
 
 fs.copyFileSync(JSON_PATH_LOCAL, BACKUP_PATH);
-console.log("\n🎉 Migration complete!");
+console.log("\ Migration complete!");
 console.log(`   Migrated : ${migrated} transaction(s)`);
 console.log(`   Skipped  : ${skipped} (already existed or malformed)`);
 console.log(`   Backup   : ${BACKUP_PATH}`);

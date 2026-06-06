@@ -4,7 +4,6 @@ import type {
   UpdateTransactionInput,
 } from "./src/models/transaction.js";
 import { AppError } from "./src/services/errors.js";
-import { ExpenseTracker } from "./src/services/expenseTracker.js";
 import readline from "readline";
 import { tracker } from "./src/tracker-instance.js";
 

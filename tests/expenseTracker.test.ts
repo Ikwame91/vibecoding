@@ -109,10 +109,7 @@ describe("ExpenseTracker", () => {
     );
 
     assert.deepEqual(
-      tracker.listTransactions(
-        { category: "food", type: "expense" },
-        "user-1",
-      ),
+      tracker.listTransactions({ category: "food", type: "expense" }, "user-1"),
       [foodExpense],
     );
   });
