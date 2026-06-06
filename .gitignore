@@ -1,4 +1,10 @@
 node_modules/
+.env
+.env.*
+!.env.example
+/data
+# Optional editor files
+.vscode/node_modules/
 /.vscode
 utils/transactions.json
 --what else can i add in gitignore

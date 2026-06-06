@@ -5,8 +5,8 @@ import { AppError } from "./errors.js";
 import { randomUUID } from "crypto";
 import { assertValidEmail, assertValidPassword } from "./validation.auth.js";
 
-const SALT_ROUNDS = Number(process.env.BCRYPT_ROUNDS) || 10;
-const JWT_SECRET = process.env.JWT_SECRET;
+const parsedSaltRounds = Number(process.env.BCRYPT_ROUNDS);
+const SALT_ROUNDS = Number.isInteger(parsedSaltRounds) && parsedSaltRounds > 0 ? parsedSaltRounds : 12;
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users(
@@ -15,7 +15,7 @@ db.exec(`
     passwordHash TEXT NOT NULL,
     createdAt TEXT NOT NULL
   );
-    )`);
+    `);
 export async function register(email: unknown, password: unknown) {
   assertValidEmail(email);
   assertValidPassword(password);
@@ -29,13 +29,21 @@ export async function register(email: unknown, password: unknown) {
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
   const id = randomUUID();
   const createdAt = new Date().toISOString();
+  try {
+    db.prepare(
+      "INSERT INTO users(id, email, passwordHash, createdAt) VALUES(?, ?, ?, ?)",
+    ).run(id, normalizedEmail, passwordHash, createdAt);
 
-  db.prepare(
-    "INSERT INTO users(id, email, passwordHash, createdAt) VALUES(?, ?, ?, ?)",
-  ).run(id, normalizedEmail, passwordHash, createdAt);
-
-  return { id, email: normalizedEmail, createdAt };
+    return { id, email: normalizedEmail, createdAt };
+  } catch (err) {
+    const e = err as { code?: string; message?: string };
+    if (e?.code === "SQLITE_CONSTRAINT" || /UNIQUE/i.test(String(e?.message))) {
+      throw new AppError("Email already registered", 409);
+    }
+    throw err;
+  }
 }
+
 
 export async function verifyCredentials(email: unknown, password: unknown) {
   assertValidEmail(email);
@@ -55,6 +63,7 @@ export async function verifyCredentials(email: unknown, password: unknown) {
 }
 
 export function signToken(userId: string) {
-  if (!JWT_SECRET) throw new AppError("JWT secret not configured", 500);
-  return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: "15m" });
+ const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) throw new AppError("JWT secret not configured", 500);
+  return jwt.sign({ sub: userId }, jwtSecret, { expiresIn: "15m" });
 }

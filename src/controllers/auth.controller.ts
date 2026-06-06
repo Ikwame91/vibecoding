@@ -15,7 +15,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const { email, password } = req.body;
     const user = await authService.verifyCredentials(email, password);
-    const token = authService.signToken(user.id);//why do i get an error without .id here?
+    const token = authService.signToken(user.id);
     res.json({ accessToken: token, tokenType: "Bearer", expiresIn: 15 * 60 });
   } catch (err) {
     next(err);
