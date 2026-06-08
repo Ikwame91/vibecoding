@@ -46,19 +46,33 @@ const db = new Database(DB_PATH_LOCAL);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    passwordHash TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  );
+`);
+
+db.prepare(`
+  INSERT OR IGNORE INTO users (id, email, passwordHash, createdAt)
+  VALUES ('implicit', 'implicit@example.com', '', ?)
+`).run(new Date().toISOString());
+
 db.exec(
   `
     CREATE TABLE IF NOT EXISTS transactions(
-  id          TEXT PRIMARY KEY,
-    description TEXT NOT NULL,
-    amount      REAL NOT NULL,
-    type        TEXT NOT NULL CHECK(type IN ('income', 'expense')),
-    category    TEXT NOT NULL,
-    date        TEXT NOT NULL,
-    userId      TEXT NOT NULL DEFAULT 'implicit'
-  );
-
-    `,
+      id          TEXT PRIMARY KEY,
+      description TEXT NOT NULL,
+      amount      REAL NOT NULL,
+      type        TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+      category    TEXT NOT NULL,
+      date        TEXT NOT NULL,
+      userId      TEXT NOT NULL DEFAULT 'implicit',
+      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `,
 );
 
 console.log(`🗄️  Database ready at: ${DB_PATH_LOCAL}`);
