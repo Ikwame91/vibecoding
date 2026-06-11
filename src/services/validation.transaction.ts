@@ -13,10 +13,14 @@ export function assertValidAmount(amount: number) {
   }
 }
 
+const MAX_FIELD_LENGTH = 500;
+
 export function assertNonEmpty(value: string, fieldName: string) {
-  //empty/whitespace -- throw
   if (!value || value.trim() === "") {
     throw new AppError(`${fieldName} cannot be empty`);
+  }
+  if (value.trim().length > MAX_FIELD_LENGTH) {
+    throw new AppError(`${fieldName} must be at most ${MAX_FIELD_LENGTH} characters`);
   }
 }
 

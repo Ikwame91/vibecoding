@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import transactionRouter from "./routes/transaction.routes.js";
 import { errorHandler } from "./middleware/error_middleware.js";
 import authRouter from "./routes/auth.routes.js";
@@ -8,8 +9,20 @@ import { devAuth } from "./middleware/auth_middleware.js";
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(helmet());
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? process.env.CORS_ORIGIN
+          ? process.env.CORS_ORIGIN.split(",")
+          : false
+        : "*",
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
+  }),
+);
+app.use(express.json({ limit: "10kb" }));
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });

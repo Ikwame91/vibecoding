@@ -1,11 +1,13 @@
 import { AppError } from "./errors.js";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function assertValidEmail(email: unknown): asserts email is string {
   if (typeof email !== "string" || email.trim() === "") {
     throw new AppError("Email is required", 400);
   }
 
-  if (!email.includes("@")) {
+  if (!EMAIL_REGEX.test(email.trim())) {
     throw new AppError("Email must be valid", 400);
   }
 }

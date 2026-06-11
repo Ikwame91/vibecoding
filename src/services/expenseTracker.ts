@@ -22,7 +22,7 @@ export class ExpenseTracker {
       description: input.description.trim(),
       amount: input.amount,
       type: input.type,
-      category: input.category.trim().toLocaleLowerCase(),
+      category: input.category.trim().toLowerCase(),
       date: new Date(),
       userId,
     };
@@ -65,7 +65,7 @@ export class ExpenseTracker {
       updates.type = input.type;
     }
     if (input.category !== undefined) {
-      updates.category = input.category.trim().toLocaleLowerCase();
+      updates.category = input.category.trim().toLowerCase();
     }
 
     const updated = this.repository.update(id, updates, userId);
