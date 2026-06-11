@@ -287,19 +287,63 @@ CORS_ORIGIN=http://localhost:5173,https://your-frontend.com
 - `express-rate-limit` — request rate limiting
 - `helmet` — security headers
 
-## Verification
+## Why this matters — engineering value of security hardening
 
-```bash
-# Typecheck
-npx tsc --noEmit
+Security hardening is often treated as "plumbing work" that gets deprioritized. That is a mistake. Here is why each change in this phase is essential to real backend engineering — and what breaks without it.
 
-# Run tests
-npm test
+### Rate limiting prevents automated abuse
 
-# Test rate limiting (requires running server)
-for i in $(seq 1 25); do curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:3000/auth/login -H "Content-Type: application/json" -d '{"email":"test@test.com","password":"wrong"}'; done
-# Expect: 200 (first 20), then 429 (last 5)
+Without rate limiting, login endpoints are vulnerable to brute-force attacks. An attacker can try thousands of passwords per minute. With it, the same IP gets 20 attempts per 15 minutes — effectively useless for brute force. This is why every major platform (Google, GitHub, Twitter) rate-limits auth endpoints. Without it:
 
-# Test missing auth header
-curl -s http://localhost:3000/transactions
-# Expect: 401 with NODE_ENV=development (needs x-user-id header)
+- **Banking apps:** Attacker guesses weak passwords by volume
+- **E-commerce:** Bots create thousands of fake accounts
+- **Social media:** Credential stuffing from leaked password databases
+
+One rate limiter middleware blocks all of these at once.
+
+### Security headers protect against browser-level attacks
+
+Helmet sets headers like `X-Content-Type-Options: nosniff` and `X-Frame-Options: DENY`. Without these:
+
+- **XSS:** An attacker uploads a `.html` file that your API serves. Without `X-Content-Type-Options`, the browser may execute it as HTML instead of treating it as a download.
+- **Clickjacking:** Another website embeds your app in an invisible iframe and tricks users into clicking buttons.
+- **MIME sniffing:** Old browsers try to "guess" the content type of a response, potentially executing a text file as JavaScript.
+
+These headers cost nothing to set and prevent entire categories of attacks.
+
+### CORS restrictions prevent data theft
+
+Without CORS restrictions, any website can make authenticated requests to your API if a user is logged in. Example attack:
+
+```
+1. User visits attacker.com while logged into your app
+2. attacker.com makes fetch() calls to your API
+3. Browser attaches cookies/auth headers automatically
+4. Attacker reads the user's private data
+```
+
+With CORS restricted to known origins, only your frontend domain can make browser requests. This is why production APIs never use `app.use(cors())` without origin configuration.
+
+### Input validation prevents resource exhaustion
+
+Without size limits on description/category, an attacker can:
+- Send a 10MB string as a "description", consuming server memory
+- Fill your database with garbage data
+- Slow down queries that process large text fields
+
+A 500-character limit prevents all of this while being more than enough for real users (the Constitution is ~4,500 words; 500 characters covers ~80 words).
+
+### No implicit fallback prevents data leaks
+
+The old `|| "implicit"` fallback meant that a missing auth header silently assigned data to a shared default user. In practice:
+
+- A buggy frontend sends requests without auth headers
+- All those requests write to the same `"implicit"` user
+- User A's data mingles with User B's data
+- Reports, balances, and history are corrupted for everyone
+
+A 401 on missing auth is the only correct behavior. "Guess the user" is never the right answer in production.
+
+### Summary
+
+Every item in Phase 3A protects against a specific, well-documented attack class. None of them are theoretical — they map directly to CVEs, data breaches, and OWASP Top 10 vulnerabilities. In any professional backend role, these patterns are expected, not optional.

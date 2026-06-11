@@ -1,12 +1,18 @@
 import db from "../db/database.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { createHash } from "crypto";
 import { AppError } from "./errors.js";
 import { randomUUID } from "crypto";
 import { assertValidEmail, assertValidPassword } from "./validation.auth.js";
 
 const parsedSaltRounds = Number(process.env.BCRYPT_ROUNDS);
 const SALT_ROUNDS = Number.isInteger(parsedSaltRounds) && parsedSaltRounds > 0 ? parsedSaltRounds : 12;
+
+const ACCESS_TOKEN_EXPIRY = "15m";
+const ACCESS_TOKEN_EXPIRY_SECONDS = 15 * 60;
+const REFRESH_TOKEN_EXPIRY = "7d";
+const REFRESH_TOKEN_EXPIRY_SECONDS = 7 * 24 * 60 * 60;
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users(
@@ -15,7 +21,29 @@ db.exec(`
     passwordHash TEXT NOT NULL,
     createdAt TEXT NOT NULL
   );
-    `);
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS refresh_tokens(
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    tokenHash TEXT NOT NULL,
+    expiresAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+`);
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new AppError("JWT secret not configured", 500);
+  return secret;
+}
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 export async function register(email: unknown, password: unknown) {
   assertValidEmail(email);
   assertValidPassword(password);
@@ -44,7 +72,6 @@ export async function register(email: unknown, password: unknown) {
   }
 }
 
-
 export async function verifyCredentials(email: unknown, password: unknown) {
   assertValidEmail(email);
 
@@ -62,8 +89,54 @@ export async function verifyCredentials(email: unknown, password: unknown) {
   return { id: row.id };
 }
 
-export function signToken(userId: string) {
- const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) throw new AppError("JWT secret not configured", 500);
-  return jwt.sign({ sub: userId }, jwtSecret, { expiresIn: "15m" });
+export function signAccessToken(userId: string): string {
+  const secret = getJwtSecret();
+  const jti = randomUUID();
+  return jwt.sign({ sub: userId, jti }, secret, { expiresIn: ACCESS_TOKEN_EXPIRY });
+}
+
+export function getAccessTokenExpirySeconds(): number {
+  return ACCESS_TOKEN_EXPIRY_SECONDS;
+}
+
+export function generateRefreshToken(userId: string): { token: string; expiresAt: Date } {
+  const token = randomUUID() + randomUUID();
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_SECONDS * 1000);
+  const tokenHash = hashToken(token);
+
+  db.prepare(
+    "INSERT INTO refresh_tokens (id, userId, tokenHash, expiresAt, createdAt) VALUES (?, ?, ?, ?, ?)"
+  ).run(randomUUID(), userId, tokenHash, expiresAt.toISOString(), new Date().toISOString());
+
+  return { token, expiresAt };
+}
+
+export function rotateRefreshToken(oldToken: string): { accessToken: string; refreshToken: string; expiresAt: Date } | null {
+  const tokenHash = hashToken(oldToken);
+
+  const row = db.prepare(
+    "SELECT id, userId, expiresAt FROM refresh_tokens WHERE tokenHash = ?"
+  ).get(tokenHash) as { id: string; userId: string; expiresAt: string } | undefined;
+
+  if (!row) return null;
+
+  const expiresAt = new Date(row.expiresAt);
+  if (expiresAt < new Date()) return null;
+
+  db.prepare("DELETE FROM refresh_tokens WHERE id = ?").run(row.id);
+
+  const accessToken = signAccessToken(row.userId);
+  const newRefresh = generateRefreshToken(row.userId);
+  return { accessToken, refreshToken: newRefresh.token, expiresAt: newRefresh.expiresAt };
+}
+
+export function revokeRefreshToken(token: string): void {
+  const tokenHash = hashToken(token);
+  db.prepare("DELETE FROM refresh_tokens WHERE tokenHash = ?").run(tokenHash);
+}
+
+export function verifyAccessToken(token: string): { sub: string; jti: string } {
+  const secret = getJwtSecret();
+  const payload = jwt.verify(token, secret) as { sub: string; jti: string; exp: number };
+  return { sub: payload.sub, jti: payload.jti };
 }

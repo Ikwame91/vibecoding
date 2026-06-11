@@ -5,7 +5,7 @@ import transactionRouter from "./routes/transaction.routes.js";
 import { errorHandler } from "./middleware/error_middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import { jwtAuth } from "./middleware/jwt_middleware.js";
-import { devAuth } from "./middleware/auth_middleware.js";
+import { devAuth } from "./middleware/dev-auth.middleware.js";
 
 const app = express();
 

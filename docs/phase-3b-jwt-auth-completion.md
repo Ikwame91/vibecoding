@@ -183,6 +183,100 @@ The login response now includes a `refreshToken`:
 | `src/app.ts` | Modified | Updated import path for dev auth |
 | `docs/phase-3b-jwt-auth-completion.md` | **New** | This file |
 
+## Why this matters — engineering value of full auth lifecycle
+
+Phase 3B moves the project from "identifies the user" to "manages the user's session lifecycle." This is the difference between a toy auth system and one that could power a real application.
+
+### Short-lived access tokens limit damage
+
+Access tokens expire in 15 minutes. If one leaks:
+- **Without expiry:** The attacker has indefinite access. They can read all data, make changes, export records.
+- **With 15-minute expiry:** The attacker has at most 15 minutes. By the time the leak is discovered, the window has closed.
+
+This is why banking apps and payment systems use short-lived tokens. The inconvenience of re-authenticating is far less than the cost of a leaked long-lived token.
+
+### Refresh tokens enable persistent sessions without storing passwords
+
+Without refresh tokens, you have two bad options:
+1. **Long-lived access tokens (hours/days):** Leaked token = permanent access.
+2. **Short-lived tokens + frequent re-login:** Terrible user experience. Mobile apps would ask for a password every 15 minutes.
+
+Refresh tokens solve this: the access token is short-lived (secure), but the refresh token allows seamless renewal (convenient). The refresh token is stored hashed in the database, so a DB leak doesn't expose usable tokens.
+
+**Real-world examples:**
+- **Google APIs:** OAuth 2.0 refresh tokens let apps maintain access without storing user passwords
+- **Mobile apps:** You log in once, the app refreshes silently, you never see a login screen again
+- **SPAs:** The frontend refreshes tokens in the background, users stay logged in during a session
+
+### Token rotation prevents replay attacks
+
+Before rotation, if someone steals a refresh token, they can:
+```
+1. Steal refresh token from device A
+2. Use it to generate new access tokens indefinitely
+3. The legitimate user never knows
+```
+
+With rotation (single-use refresh tokens):
+```
+1. Steal refresh token from device A
+2. Use it once → server issues new token, deletes old one
+3. Legitimate user tries to refresh → old token is gone → rejected
+4. Legitimate user re-logs in or reports the issue
+```
+
+Theft becomes detectable. The attacker cannot maintain access without the legitimate user noticing. This is the OAuth 2.0 security best practice.
+
+### Token revocation enables logout that actually works
+
+Before the blacklist, "logout" in this project was meaningless. The JWT remained valid until expiry. The user would:
+```
+1. Click "Logout"
+2. App deletes the token from the frontend
+3. But the token still works if someone intercepted it
+4. The token still works if it was already stolen
+```
+
+With the blacklist:
+```
+1. Click "Logout"
+2. Server adds the jti to the blacklist
+3. Token immediately stops working for all subsequent requests
+4. Even if it was intercepted earlier, the server rejects it
+```
+
+This is essential for:
+- **Shared devices:** Logging out from a library computer must actually invalidate the session
+- **Account compromise detection:** If suspicious activity is detected, revoke all tokens
+- **Password changes:** Invalidate all existing sessions when the password changes
+
+### The `jti` (JWT ID) enables targeted revocation
+
+Without `jti`, you could only invalidate *all* tokens for a user (by changing the secret). With `jti`, you can revoke a single session.
+
+**Example use case:** User is logged in on three devices (phone, laptop, work computer). They lose their phone. Without `jti`, you have to invalidate all sessions and log the user out everywhere. With `jti`, you revoke only the phone's token.
+
+### Dev auth vs production auth — fast iteration, safe deployment
+
+Having `devAuth` (x-user-id header) and `jwtAuth` (Bearer token) separated means:
+- **Development:** No need to register, login, and manage tokens. Just set `x-user-id: test-user` and test features instantly.
+- **Production:** Full JWT security with no shortcuts.
+
+The switch is driven by `NODE_ENV` — one environment variable controls the entire auth mode. This pattern is used by almost every serious API during development.
+
+### Summary
+
+| Feature | Without it | With it |
+|---------|-----------|---------|
+| Short-lived access tokens | Leaked token = permanent access | Leaked token = 15-min window |
+| Refresh tokens | Password stored on device, or login every 15min | Persistent session, no password stored |
+| Token rotation | Stolen refresh token = permanent access | Theft is detectable and limited |
+| Token blacklist | "Logout" is cosmetic, token still works | Logout immediately revokes the token |
+| jti (JWT ID) | Can only revoke ALL user sessions | Can revoke a single session |
+| Dev/prod auth split | Test in production mode (slow) or run insecure code | Fast dev, secure prod |
+
+These patterns appear in every serious backend: banking, healthcare, SaaS, mobile backends, IoT platforms. Understanding them from this small expense tracker is directly transferable to production systems of any scale.
+
 ## Verification
 
 ```bash
